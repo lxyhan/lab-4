@@ -27,6 +27,7 @@ import usecase.LogGradeUseCase;
 /**
  * GUI class to run the GUI for the Grade App.
  */
+
 public class Application {
     static final int ROWS = 4;
     static final int COLS = 2;
