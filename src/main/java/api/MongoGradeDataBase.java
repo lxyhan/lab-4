@@ -1,6 +1,8 @@
 package api;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -247,8 +249,7 @@ public class MongoGradeDataBase implements GradeDataBase {
     //             methods to help you write this code (copy-and-paste + edit as needed).
     //             https://www.postman.com/cloudy-astronaut-813156/csc207-grade-apis-demo/folder/isr2ymn/get-my-team
     public Team getMyTeam() {
-        final OkHttpClient client = new OkHttpClient().newBuilder()
-                .build();
+        final OkHttpClient client = new OkHttpClient().newBuilder().build();
         final Request request = new Request.Builder()
                 .url(String.format("%s/team", API_URL))
                 .method("GET", null)
@@ -256,12 +257,42 @@ public class MongoGradeDataBase implements GradeDataBase {
                 .addHeader(CONTENT_TYPE, APPLICATION_JSON)
                 .build();
 
-        final Response response;
-        final JSONObject responseBody;
+        try (Response response = client.newCall(request).execute()) {
+            if (response.isSuccessful() && response.body() != null) {
+                // Parse the response body as a JSON object
+                final String jsonData = response.body().string();
+                final JSONObject responseBody = new JSONObject(jsonData);
 
-        // TODO Task 3b: Implement the logic to get the team information
-        // HINT: Look at the formTeam method to get an idea on how to parse the response
+                // Assuming the response contains a "team" object with a "name" and "members" array
+                if (responseBody.has("team")) {
+                    final JSONObject teamJson = responseBody.getJSONObject("team");
+                    final String teamName = teamJson.getString("name");
+                    final JSONArray membersArray = teamJson.getJSONArray("members");
 
-        return null;
+                    // Convert JSONArray to a List of strings
+                    List<String> members = new ArrayList<>();
+                    for (int i = 0; i < membersArray.length(); i++) {
+                        members.add(membersArray.getString(i));
+                    }
+
+                    // Assuming your Team object has a constructor or builder method
+                    return Team.builder()
+                            .name(teamName)
+                            .members(members.toArray(new String[0]))
+                            .build();
+                }
+                else {
+                    throw new RuntimeException("Team information not found in the response");
+                }
+            }
+            else {
+                throw new RuntimeException("Failed to retrieve team information. HTTP Status: " + response.code());
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error while retrieving team information", e);
+        }
     }
+
 }
