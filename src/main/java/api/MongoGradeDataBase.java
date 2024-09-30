@@ -244,10 +244,6 @@ public class MongoGradeDataBase implements GradeDataBase {
     }
 
     @Override
-    // TODO Task 3b: Implement this method
-    //       Hint: Read the Grade API documentation for getMyTeam (link below) and refer to the above similar
-    //             methods to help you write this code (copy-and-paste + edit as needed).
-    //             https://www.postman.com/cloudy-astronaut-813156/csc207-grade-apis-demo/folder/isr2ymn/get-my-team
     public Team getMyTeam() {
         final OkHttpClient client = new OkHttpClient().newBuilder().build();
         final Request request = new Request.Builder()
@@ -259,23 +255,19 @@ public class MongoGradeDataBase implements GradeDataBase {
 
         try (Response response = client.newCall(request).execute()) {
             if (response.isSuccessful() && response.body() != null) {
-                // Parse the response body as a JSON object
                 final String jsonData = response.body().string();
                 final JSONObject responseBody = new JSONObject(jsonData);
 
-                // Assuming the response contains a "team" object with a "name" and "members" array
                 if (responseBody.has("team")) {
                     final JSONObject teamJson = responseBody.getJSONObject("team");
                     final String teamName = teamJson.getString("name");
                     final JSONArray membersArray = teamJson.getJSONArray("members");
 
-                    // Convert JSONArray to a List of strings
                     List<String> members = new ArrayList<>();
                     for (int i = 0; i < membersArray.length(); i++) {
                         members.add(membersArray.getString(i));
                     }
 
-                    // Assuming your Team object has a constructor or builder method
                     return Team.builder()
                             .name(teamName)
                             .members(members.toArray(new String[0]))
